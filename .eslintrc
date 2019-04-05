@@ -14,6 +14,6 @@
       }
     ],
     "global-require": "off",
-    "import/prefer-default-import": "off"
+    "import/prefer-default-export": "off"
   }
 }
