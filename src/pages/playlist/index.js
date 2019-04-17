@@ -2,8 +2,11 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
-import { Container, Header, SongList } from './styles';
+import {
+  Container, Header, SongList, SongItem,
+} from './styles';
 import { Creators as PlaylistDetailsActions } from '../../store/ducks/playlistDetails';
+import { Creators as PlayerActions } from '../../store/ducks/player';
 import Loading from '../../components/Loading';
 
 import ClockIcon from '../../assets/images/clock.svg';
@@ -36,6 +39,14 @@ class Playlist extends Component {
       ),
       loading: PropTypes.bool,
     }).isRequired,
+    loadSong: PropTypes.func.isRequired,
+    currentSong: PropTypes.shape({
+      id: PropTypes.number,
+    }).isRequired,
+  };
+
+  state = {
+    selectedSong: null,
   };
 
   componentDidMount() {
@@ -58,8 +69,9 @@ class Playlist extends Component {
   renderDetails = () => {
     const {
       playlistDetails: { data: playlist },
+      loadSong,
     } = this.props;
-    console.log(playlist);
+
     return (
       <Container>
         <Header>
@@ -97,7 +109,13 @@ class Playlist extends Component {
               </tr>
             ) : (
               playlist.songs.map(song => (
-                <tr key={song.id}>
+                <SongItem
+                  key={song.id}
+                  onDoubleClick={() => loadSong(song, playlist.songs)}
+                  onClick={() => this.setState({ selectedSong: song.id })}
+                  selected={this.state.selectedSong === song.id}
+                  playing={this.props.currentSong && this.props.currentSong.id === song.id}
+                >
                   <td>
                     <img src={PlusIcon} alt="Adicionar" />
                   </td>
@@ -105,7 +123,7 @@ class Playlist extends Component {
                   <td>{song.author}</td>
                   <td>{song.album}</td>
                   <td>3:26</td>
-                </tr>
+                </SongItem>
               ))
             )}
           </tbody>
@@ -126,10 +144,12 @@ class Playlist extends Component {
   }
 }
 export default connect(
-  ({ playlistDetails }) => ({
+  ({ playlistDetails, player }) => ({
     playlistDetails,
+    currentSong: player.currentSong,
   }),
   {
     ...PlaylistDetailsActions,
+    ...PlayerActions,
   },
 )(Playlist);
